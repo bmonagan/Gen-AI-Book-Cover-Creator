@@ -6,8 +6,15 @@ import json
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin # Useful for constructing full image URLs
 
+#TODO FUNCTION TYPING
+
 
 list_page_url = "https://www.goodreads.com/list/show/43342.NEW_ADULT_fantasy_paranormal_romance"
+# Simulate a browser by adding a User-Agent header
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
+
 
 # Create directories
 IMAGE_DIR = "goodreads data/goodreads_book_covers"
@@ -15,10 +22,6 @@ DATA_DIR = "goodreads data/goodreads_book_data"
 os.makedirs(IMAGE_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# Simulate a browser by adding a User-Agent header
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-}
 
 def fetch_page(url, headers, delay_min=5, delay_max=10):
     print(f"Fetching: {url}")
@@ -54,16 +57,33 @@ def extract_book_links_from_list_page(html, base_url):
             book_links.append(full_url)
     return list(set(book_links)) # Return unique links
 
-# Example: Best Books Ever list (use with extreme caution)
 
 initial_html = fetch_page(list_page_url, headers)
 
 if not initial_html:
     print("Failed to get initial list page. Exiting.")
     exit()
+def get_next_goodreads_page_url(html: str, current_url: str) -> str:
+    soup = BeautifulSoup(html, 'html.parser')
+    next_page_link = soup.find('a', class_='next_page')
+    if next_page_link and next_page_link.get('href'):
+        next_page_relative_url = next_page_link['href']
+        return urljoin(current_url, next_page_relative_url)
+    return None
+ 
+book_detail_urls = []
+next_page = True
+while next_page:
+    book_detail_urls.extend(extract_book_links_from_list_page(initial_html, list_page_url))
 
-book_detail_urls = extract_book_links_from_list_page(initial_html, list_page_url)
-print(f"Found {len(book_detail_urls)} book detail URLs.")
+    next_page = get_next_goodreads_page_url(initial_html, list_page_url)
+    if next_page:
+        print(f"Found next page: {next_page}")
+        initial_html = fetch_page(next_page, headers)
+    else:
+        print("No more pages found.")
+        next_page = False
+print(f"Total book detail URLs found: {len(book_detail_urls)}")
 
  # To save data in a structured format
 
@@ -80,7 +100,8 @@ def extract_book_details(book_html, book_url):
         'publication_year': None,
         'average_rating': None,
         'ratings_count': None,
-        'reviews_count': None
+        'reviews_count': None,
+        'details': None,
     }
 
     try:
@@ -167,6 +188,13 @@ def extract_book_details(book_html, book_url):
             reviews_match = re.search(r'(\d+)\s+reviews', text)
             if reviews_match:
                 book_data['reviews_count'] = int(reviews_match.group(1))
+        
+        # Formatted tag which is the book description
+        details_div = soup.find('div', class_='Formatted') 
+        if details_div:
+            book_data['details'] = details_div.get_text(strip=True)
+
+        
 
 
     except Exception as e:
