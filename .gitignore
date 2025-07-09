@@ -9,6 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+#Data
+goodreads data/
 
 # Notes and Misc 
 notes.md
