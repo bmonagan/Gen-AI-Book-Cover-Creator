@@ -23,7 +23,7 @@ os.makedirs(IMAGE_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 
 
-def fetch_page(url, headers, delay_min=5, delay_max=10):
+def fetch_page(url: str, headers: dict, delay_min: float = 5, delay_max: float = 10) -> str:
     print(f"Fetching: {url}")
     time.sleep(random.uniform(delay_min, delay_max)) # Critical delay
     try:
@@ -34,7 +34,7 @@ def fetch_page(url, headers, delay_min=5, delay_max=10):
         print(f"Error fetching {url}: {e}")
         return None
 
-def extract_book_links_from_list_page(html, base_url):
+def extract_book_links_from_list_page(html: str, base_url: str) -> list[str]:
     soup = BeautifulSoup(html, 'html.parser')
     book_links = []
 
@@ -87,7 +87,7 @@ print(f"Total book detail URLs found: {len(book_detail_urls)}")
 
  # To save data in a structured format
 
-def extract_book_details(book_html, book_url):
+def extract_book_details(book_html: str, book_url: str) -> dict:
     soup = BeautifulSoup(book_html, 'html.parser')
     book_data = {
         'url': book_url,
@@ -202,7 +202,7 @@ def extract_book_details(book_html, book_url):
 
     return book_data
 
-def download_image(image_url, save_path):
+def download_image(image_url: str, save_path: str) -> None:
     """
     Downloads an image from a given URL and saves it to a specified path.
     Includes crucial delays for ethical scraping on Goodreads.
