@@ -101,7 +101,7 @@ def extract_book_details(book_html: str, book_url: str) -> dict:
         'average_rating': None,
         'ratings_count': None,
         'reviews_count': None,
-        'details': None,
+        'description': None,
     }
 
     try:
@@ -190,9 +190,9 @@ def extract_book_details(book_html: str, book_url: str) -> dict:
                 book_data['reviews_count'] = int(reviews_match.group(1))
         
         # Formatted tag which is the book description
-        details_div = soup.find('div', class_='Formatted') 
-        if details_div:
-            book_data['details'] = details_div.get_text(strip=True)
+        desc_tag = soup.find('div', {'data-testid': 'contentContainer'})
+        if desc_tag:
+            book_data['description'] = desc_tag.get_text(strip=True)
 
         
 
@@ -209,7 +209,7 @@ def download_image(image_url: str, save_path: str) -> None:
     """
     print(f"Attempting to download: {image_url}")
     try:
-        # Crucial for Goodreads: Implement delays before each download
+        # Goodreads has a more strict scraping policy, so need to include the random delays
         # This delay is *in addition* to delays before fetching HTML pages.
         time.sleep(random.uniform(3, 7)) # Wait 3-7 seconds between each image download
 
