@@ -1,18 +1,13 @@
+
 from PIL import Image
+import os
 
-def resize_image(input_path, output_path, size=(512, 512)):
-    """
-    Resize an image to the specified size and save it to the output path.
-    
-    :param input_path: Path to the input image file.
-    :param output_path: Path where the resized image will be saved.
-    :param size: Tuple specifying the desired size (width, height).
-    """
-    try:
-        with Image.open(input_path) as img:
-            img = img.resize(size, Image.ANTIALIAS)
-            img.save(output_path)
-            print(f"Image resized and saved to {output_path}")
-    except Exception as e:
-        print(f"Error resizing image: {e}")
+input_folder = 'goodreads data/goodreads_book_covers'
+output_folder = 'goodreads data/goodreads_covers_resized'
+size = (512, 512)
 
+for filename in os.listdir(input_folder):
+    if filename.endswith('.jpg') and filename not in os.listdir(output_folder):
+        img = Image.open(os.path.join(input_folder, filename))
+        img.thumbnail(size)
+        img.save(os.path.join(output_folder, filename))
