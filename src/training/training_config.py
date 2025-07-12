@@ -12,7 +12,7 @@ class TrainingConfig:
     save_image_epochs = 10
     save_model_epochs = 30
     mixed_precision = "fp16"  # `no` for float32, `fp16` for automatic mixed precision
-    output_dir = "romantasy-bookcovers"  # the model name locally and on the HF Hub
+    output_dir = "data/Generated/romantasy_bookcovers"  # the model name locally and on the HF Hub
 
 
     #--- Optional parameters for uploading to the Hugging Face Hub ---#
@@ -24,4 +24,3 @@ class TrainingConfig:
     # seed = 0
 
 
-config = TrainingConfig()
