@@ -1,4 +1,3 @@
-
 from PIL import Image
 import os
 
@@ -12,6 +11,8 @@ for filename in os.listdir(input_folder):
     if filename.endswith('.jpg') and filename not in os.listdir(output_folder):
         img = Image.open(os.path.join(input_folder, filename))
         img.thumbnail(size)
-        img.save(os.path.join(output_folder, filename))
+        if img.mode == 'RGBA':
+            img = img.convert('RGB')
+        img.save(os.path.join(output_folder, filename), format='JPEG')
         print(f"Resized and saved: {filename}")
 print("Resizing complete.")
