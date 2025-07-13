@@ -13,7 +13,7 @@ from torchvision import transforms
 # Hugging Face libraries
 from accelerate import Accelerator
 from datasets import load_dataset
-from diffusers import UNet2DModel, DDPMScheduler
+from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from diffusers.utils import make_image_grid
 from huggingface_hub import create_repo, upload_folder
