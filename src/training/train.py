@@ -1,21 +1,24 @@
+"""Main training script for the Goodreads book cover dataset using a diffusion model."""
 # Standard library
 import os
 from pathlib import Path
 
 # Third-party libraries
-import matplotlib.pyplot as plt
 import torch
 import torch.nn.functional as F
 from PIL import Image
 from tqdm.auto import tqdm
 from torchvision import transforms
+from accelerate import notebook_launcher
 
 # Hugging Face libraries
 from accelerate import Accelerator
 from datasets import load_dataset
-from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
+from diffusers.models.unets.unet_2d import UNet2DModel
+from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
+from diffusers.pipelines.ddpm.pipeline_ddpm import DDPMPipeline
 from diffusers.optimization import get_cosine_schedule_with_warmup
-from diffusers.utils import make_image_grid
+from diffusers.utils.pil_utils import make_image_grid
 from huggingface_hub import create_repo, upload_folder
 
 # Import local training configuration
@@ -51,7 +54,6 @@ preprocess = transforms.Compose(
 def transform(examples):
     images = [preprocess(image.convert("RGB")) for image in examples["image"]]
     return {"images": images}
-
 
 dataset.set_transform(transform)
 train_dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=config.train_batch_size, shuffle=True)
@@ -205,8 +207,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                     pipeline.save_pretrained(config.output_dir)
 
 
-from accelerate import notebook_launcher
+
 
 args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
 
 notebook_launcher(train_loop, args, num_processes=1)
+# End-of-file (EOF)
