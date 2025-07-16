@@ -107,17 +107,18 @@ lr_scheduler = get_cosine_schedule_with_warmup(
 
 
 def evaluate(config, epoch, pipeline):
-    # Sample some images from random noise (this is the backward diffusion process).
-    # The default pipeline output type is `List[PIL.Image]`
+    # Make sure batch_size matches rows * cols
+    num_images = config.eval_batch_size
+    rows, cols = 4, 4
+    num_images = rows * cols
+
     images = pipeline(
-        batch_size=config.eval_batch_size,
-        generator=torch.Generator(device='cpu').manual_seed(config.seed), # Use a separate torch generator to avoid rewinding the random state of the main training loop
+        batch_size=num_images,
+        generator=torch.Generator(device='cpu').manual_seed(config.seed),
     ).images
 
-    # Make a grid out of the images
-    image_grid = make_image_grid(images, rows=4, cols=4)
+    image_grid = make_image_grid(images, rows=rows, cols=cols)
 
-    # Save the images
     test_dir = os.path.join(config.output_dir, "samples")
     os.makedirs(test_dir, exist_ok=True)
     image_grid.save(f"{test_dir}/{epoch:04d}.png")
