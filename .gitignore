@@ -12,6 +12,9 @@ wheels/
 #Data
 goodreads data/
 data/Generated/romantasy_bookcovers/logs/train_example/events.out.tfevents.1752554893.Blizzcon.17020.0
+data/Generated/romantasy_bookcovers/unet/diffusion_pytorch_model.safetensors
+
+
 
 # Notes and Misc 
 notes.md
