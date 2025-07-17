@@ -28,7 +28,7 @@ import training_config
 config = training_config.TrainingConfig()
 
 # Create a directory for the trained model
-model_dir = Path("goodreads_model")
+model_dir = Path("data/Generated/romantasy_bookcovers/models")
 model_dir.mkdir(exist_ok=True)
 
 
