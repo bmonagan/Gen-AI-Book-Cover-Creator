@@ -10,6 +10,7 @@ from PIL import Image
 from tqdm.auto import tqdm
 from torchvision import transforms
 from accelerate import notebook_launcher
+import numpy as np
 
 # Hugging Face libraries
 from accelerate import Accelerator
@@ -122,7 +123,9 @@ def evaluate(config, epoch, pipeline):
     test_dir = os.path.join(config.output_dir, "samples")
     os.makedirs(test_dir, exist_ok=True)
     image_grid.save(f"{test_dir}/{epoch:04d}.png")
-    print(images[0].min(), images[0].max())
+    # After generating images (assuming images is a list of PIL Images)
+    arr = np.array(images[0])
+    print(arr.min(), arr.max())
 
 
 def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler):

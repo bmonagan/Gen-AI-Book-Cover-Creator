@@ -6,12 +6,12 @@ class TrainingConfig:
     image_size: int = 256  # the generated image resolution
     train_batch_size: int = 4  # lowered for OOM safety; adjust as needed
     eval_batch_size: int = 4   # lowered for OOM safety; adjust as needed
-    num_epochs: int = 50
+    num_epochs: int = 20
     gradient_accumulation_steps: int = 1
     learning_rate: float = 5e-4
     lr_warmup_steps: int = 500
-    save_image_epochs: int = 50
-    save_model_epochs: int = 50
+    save_image_epochs: int = 10
+    save_model_epochs: int = 10
     mixed_precision: str = "fp16"  # "no" for float32, "fp16" for mixed precision
     output_dir: str = "data/Generated/romantasy_bookcovers"
     gpu_ids: str = "0"
