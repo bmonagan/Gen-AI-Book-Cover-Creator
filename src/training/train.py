@@ -181,6 +181,10 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
+                if not torch.isfinite(loss):
+                    print("NaN loss detected! Stopping training.")
+                    return
+
                 if accelerator.sync_gradients:
                     accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
