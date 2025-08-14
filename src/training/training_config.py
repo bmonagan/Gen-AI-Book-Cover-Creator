@@ -6,7 +6,7 @@ class TrainingConfig:
     image_size: int = 256  # the generated image resolution
     train_batch_size: int = 4  # lowered for OOM safety; adjust as needed
     eval_batch_size: int = 4   # lowered for OOM safety; adjust as needed
-    num_epochs: int = 200
+    num_epochs: int = 50
     gradient_accumulation_steps: int = 1
     learning_rate: float = 5e-4
     lr_warmup_steps: int = 500
