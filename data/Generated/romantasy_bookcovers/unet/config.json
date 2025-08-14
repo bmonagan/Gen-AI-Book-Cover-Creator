@@ -38,7 +38,7 @@
   "num_train_timesteps": null,
   "out_channels": 3,
   "resnet_time_scale_shift": "default",
-  "sample_size": 128,
+  "sample_size": 256,
   "time_embedding_dim": null,
   "time_embedding_type": "positional",
   "up_block_types": [

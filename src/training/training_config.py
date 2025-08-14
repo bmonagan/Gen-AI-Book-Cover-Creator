@@ -3,9 +3,9 @@ from typing import Optional
 
 @dataclass
 class TrainingConfig:
-    image_size: int = 512  # the generated image resolution
-    train_batch_size: int = 2  # lowered for OOM safety; adjust as needed
-    eval_batch_size: int = 2   # lowered for OOM safety; adjust as needed
+    image_size: int = 256  # the generated image resolution
+    train_batch_size: int = 4  # lowered for OOM safety; adjust as needed
+    eval_batch_size: int = 4   # lowered for OOM safety; adjust as needed
     num_epochs: int = 200
     gradient_accumulation_steps: int = 1
     learning_rate: float = 5e-4
@@ -16,7 +16,7 @@ class TrainingConfig:
     output_dir: str = "data/Generated/romantasy_bookcovers"
     gpu_ids: str = "0"
     seed: int = 42  # more common default for reproducibility
-    num_workers: int = 4  # for DataLoader parallelism
+    num_workers: int = 8  # for DataLoader parallelism
 
     # Optional parameters for Hugging Face Hub
     push_to_hub: bool = False
