@@ -2,6 +2,7 @@
 # Standard library
 import os
 from pathlib import Path
+import datetime
 
 # Third-party libraries
 import torch
@@ -9,11 +10,13 @@ import torch.nn.functional as F
 from PIL import Image
 from tqdm.auto import tqdm
 from torchvision import transforms
-from accelerate import notebook_launcher
 import numpy as np
 
-# Hugging Face libraries
+# Accelerate for distributed training and mixed precision
 from accelerate import Accelerator
+from accelerate import notebook_launcher
+
+# Hugging Face libraries
 from datasets import load_dataset
 from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
@@ -87,7 +90,8 @@ model = UNet2DModel(
 
 sample_image = dataset["train"][0]["images"].unsqueeze(0)
 
-#
+# Initialize the noise scheduler
+
 noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
 noise = torch.randn(sample_image.shape)
 timesteps = torch.LongTensor([50])
@@ -103,9 +107,6 @@ lr_scheduler = get_cosine_schedule_with_warmup(
     num_warmup_steps=config.lr_warmup_steps,
     num_training_steps=(len(train_dataloader) * config.num_epochs),
 )
-
-
-
 
 def evaluate(config, epoch, pipeline):
     # Make sure batch_size matches rows * cols
@@ -192,7 +193,11 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 optimizer.zero_grad()
 
             progress_bar.update(1)
-            logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0], "step": global_step}
+            logs = {
+                "loss": loss.detach().item(),
+                "lr": lr_scheduler.get_last_lr()[0], 
+                "step": global_step,  # A trailing comma is a good practice!
+            }
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
             global_step += 1
@@ -213,7 +218,8 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                         ignore_patterns=["step_*", "epoch_*"],
                     )
                 else:
-                    pipeline.save_pretrained(config.output_dir)
+                    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+                    pipeline.save_pretrained(model_dir / f"epoch-{epoch}-step-{global_step}-{date_str}")
 
 
 
