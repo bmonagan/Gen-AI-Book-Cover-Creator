@@ -20,3 +20,4 @@ data/Generated/romantasy_bookcovers/logs/train_example
 # Notes and Misc 
 notes.md
 planning.md
+data/Generated/romantasy_bookcovers/models/epoch-74-step-22950-2025-08-16/unet/diffusion_pytorch_model.safetensors
