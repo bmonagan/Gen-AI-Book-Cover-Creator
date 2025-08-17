@@ -63,11 +63,11 @@ dataset.set_transform(transform)
 train_dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=config.train_batch_size, shuffle=True)
 
 
-resume_dir = model_dir / "data\Generated\romantasy_bookcovers\models\epoch-74-step-22950-2025-08-16"  # Replace with your actual folder name
+resume_dir = model_dir / "epoch-74-step-22950-2025-08-16"
 
 if resume_dir.exists():
     print(f"Resuming from checkpoint: {resume_dir}")
-    model = UNet2DModel.from_pretrained(resume_dir)
+    model = UNet2DModel.from_pretrained(resume_dir / "unet")
 else:
     # Common diffusers UNet2DModel configuration
     # This is a simplified version of the UNet2DModel configuration
@@ -226,8 +226,6 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 else:
                     date_str = datetime.datetime.now().strftime("%Y-%m-%d")
                     pipeline.save_pretrained(model_dir / f"epoch-{epoch}-step-{global_step}-{date_str}")
-
-
 
 
 args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
