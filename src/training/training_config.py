@@ -31,8 +31,8 @@ class TrainingConfig:
         weight_decay (float): Weight decay (L2 penalty) for the optimizer.
     """
     image_size: int = 256  # the generated image resolution
-    train_batch_size: int = 6  # lowered for OOM safety; adjust as needed
-    eval_batch_size: int = 6  # lowered for OOM safety; adjust as needed
+    train_batch_size: int = 4  # lowered for OOM safety; adjust as needed
+    eval_batch_size: int = 4  # lowered for OOM safety; adjust as needed
     num_epochs: int = 100
     gradient_accumulation_steps: int = 1
     learning_rate: float = 1e-4

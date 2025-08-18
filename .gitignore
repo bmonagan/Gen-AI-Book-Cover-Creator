@@ -21,3 +21,4 @@ data/Generated/romantasy_bookcovers/logs/train_example
 notes.md
 planning.md
 data/Generated/romantasy_bookcovers/models/epoch-74-step-22950-2025-08-16/unet/diffusion_pytorch_model.safetensors
+data/Generated/romantasy_bookcovers/models/epoch-99-step-30600-2025-08-17/unet/diffusion_pytorch_model.safetensors
