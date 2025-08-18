@@ -35,7 +35,8 @@ config = training_config.TrainingConfig()
 model_dir = Path("data/Generated/romantasy_bookcovers/models")
 model_dir.mkdir(exist_ok=True)
 
-
+# For use in naming models and sample images with the current date
+date_str = datetime.datetime.now().strftime("%Y-%m-%d")
 
 # Load the local dataset
 # Images have been preprocessed and resized to 512x512 pixels(which will change to 128x128 later)
@@ -129,7 +130,7 @@ def evaluate(config, epoch, pipeline):
 
     test_dir = os.path.join(config.output_dir, "samples")
     os.makedirs(test_dir, exist_ok=True)
-    image_grid.save(f"{test_dir}/{epoch:04d}.png")
+    image_grid.save(f"{test_dir}/{epoch:04d}_{date_str}.png")
     # After generating images (assuming images is a list of PIL Images)
     arr = np.array(images[0])
     print(arr.min(), arr.max())
@@ -224,7 +225,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                         ignore_patterns=["step_*", "epoch_*"],
                     )
                 else:
-                    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+                    
                     pipeline.save_pretrained(model_dir / f"epoch-{epoch}-step-{global_step}-{date_str}")
 
 
