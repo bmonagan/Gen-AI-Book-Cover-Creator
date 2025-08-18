@@ -34,7 +34,7 @@ class TrainingConfig:
     train_batch_size: int = 4  # lowered for OOM safety; adjust as needed
     eval_batch_size: int = 4  # lowered for OOM safety; adjust as needed
     num_epochs: int = 100
-    gradient_accumulation_steps: int = 1
+    gradient_accumulation_steps: int = 2
     learning_rate: float = 1e-4
     lr_warmup_steps: int = 3000
     save_image_epochs: int = 50
