@@ -63,8 +63,8 @@ def transform(examples):
 dataset.set_transform(transform)
 train_dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=config.train_batch_size, shuffle=True)
 
-
-resume_dir = model_dir / "epoch-99-step-30600-2025-08-17"
+current_model_dir = Path(config.current_model_dir)
+resume_dir = model_dir / current_model_dir
 
 if resume_dir.exists():
     print(f"Resuming from checkpoint: {resume_dir}")
