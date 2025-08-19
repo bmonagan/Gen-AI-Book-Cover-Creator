@@ -10,6 +10,7 @@ wheels/
 .venv
 
 #Data
+*.safetensors
 goodreads data/
 data/Generated/romantasy_bookcovers/logs/train_example/events.out.tfevents.1752554893.Blizzcon.17020.0
 data/Generated/romantasy_bookcovers/unet/diffusion_pytorch_model.safetensors
@@ -17,9 +18,8 @@ data/Generated/romantasy_bookcovers/logs/train_example
 
 
 
+
 # Notes and Misc 
 notes.md
 planning.md
-data/Generated/romantasy_bookcovers/models/epoch-74-step-22950-2025-08-16/unet/diffusion_pytorch_model.safetensors
-data/Generated/romantasy_bookcovers/models/epoch-99-step-30600-2025-08-17/unet/diffusion_pytorch_model.safetensors
-data/Generated/romantasy_bookcovers/models/epoch-99-step-30600-2025-08-18/unet/diffusion_pytorch_model.safetensors
+
