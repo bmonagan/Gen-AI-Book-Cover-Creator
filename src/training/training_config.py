@@ -33,12 +33,12 @@ class TrainingConfig:
     image_size: int = 256  # the generated image resolution
     train_batch_size: int = 4  # lowered for OOM safety; adjust as needed
     eval_batch_size: int = 4  # lowered for OOM safety; adjust as needed
-    num_epochs: int = 50
+    num_epochs: int = 75
     gradient_accumulation_steps: int = 4
     learning_rate: float = 1e-4
     lr_warmup_steps: int = 3000
-    save_image_epochs: int = 50
-    save_model_epochs: int = 50
+    save_image_epochs: int = 75
+    save_model_epochs: int = 75
 
     mixed_precision: str = "no"
     output_dir: str = "data/Generated/romantasy_bookcovers"
