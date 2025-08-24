@@ -33,12 +33,12 @@ class TrainingConfig:
     image_size: int = 256  # the generated image resolution
     train_batch_size: int = 4  # lowered for OOM safety; adjust as needed
     eval_batch_size: int = 4  # lowered for OOM safety; adjust as needed
-    num_epochs: int = 75
+    num_epochs: int = 100
     gradient_accumulation_steps: int = 4
     learning_rate: float = 1e-4
     lr_warmup_steps: int = 3000
-    save_image_epochs: int = 75
-    save_model_epochs: int = 75
+    save_image_epochs: int = 100
+    save_model_epochs: int = 100
 
     mixed_precision: str = "no"
     output_dir: str = "data/Generated/romantasy_bookcovers"
@@ -64,6 +64,6 @@ class TrainingConfig:
     weight_decay: float = 0.01
 
     # Current Model Directory
-    current_model_dir: str = "epoch-199-step-61200-2025-08-20"
-
+    current_model_dir: str = "epoch-74-step-22950-2025-08-22"
+ 
 
