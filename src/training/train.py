@@ -61,7 +61,11 @@ def transform(examples):
     return {"images": images}
 
 dataset.set_transform(transform)
-train_dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=config.train_batch_size, shuffle=True)
+dataloader = torch.utils.data.DataLoader(
+    dataset["train"],
+    batch_size=config.train_batch_size,
+    shuffle=True
+)
 
 current_model_dir = Path(config.current_model_dir)
 resume_dir = model_dir / current_model_dir
@@ -77,7 +81,14 @@ else:
         in_channels=3,  # the number of input channels, 3 for RGB images
         out_channels=3,  # the number of output channels
         layers_per_block=2,  # how many ResNet layers to use per UNet block
-        block_out_channels=(128, 128, 256, 256, 512, 512),  # the number of output channels for each UNet block
+        block_out_channels=(
+            128,
+            128,
+            256,
+            256,
+            512,
+            512
+        ),  # the number of output channels for each UNet block
         down_block_types=(
             "DownBlock2D",  # a regular ResNet downsampling block
             "DownBlock2D",
@@ -112,7 +123,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 lr_scheduler = get_cosine_schedule_with_warmup(
     optimizer=optimizer,
     num_warmup_steps=config.lr_warmup_steps,
-    num_training_steps=(len(train_dataloader) * config.num_epochs),
+    num_training_steps=(len(dataloader) * config.num_epochs),
 )
 
 def evaluate(train_config, epoch, pipeline):
@@ -136,7 +147,7 @@ def evaluate(train_config, epoch, pipeline):
     print(arr.min(), arr.max())
 
 
-def train_loop(train_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler):
+def train_loop(train_config, train_model, train_noise_scheduler, train_optimizer, train_dataloader, lr_scheduler):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
         mixed_precision=train_config.mixed_precision,
@@ -156,18 +167,18 @@ def train_loop(train_config, model, noise_scheduler, optimizer, train_dataloader
     # Prepare everything
     # There is no specific order to remember, you just need to unpack the
     # objects in the same order you gave them to the prepare method.
-    model, optimizer, dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, dataloader, lr_scheduler
+    train_model, train_optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+        train_model, train_optimizer, train_dataloader, lr_scheduler
     )
 
     global_step = 0
 
     # Now you train the model
     for epoch in range(train_config.num_epochs):
-        progress_bar = tqdm(total=len(dataloader), disable=not accelerator.is_local_main_process)
+        progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
         progress_bar.set_description(f"Epoch {epoch}")
 
-        for step, batch in enumerate(dataloader):
+        for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
             # Sample noise to add to the images
             noise = torch.randn(clean_images.shape, device=clean_images.device)
@@ -175,17 +186,17 @@ def train_loop(train_config, model, noise_scheduler, optimizer, train_dataloader
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
-                0, noise_scheduler.config.num_train_timesteps, (bs,), device=clean_images.device,
+                0, train_noise_scheduler.config.num_train_timesteps, (bs,), device=clean_images.device,
                 dtype=torch.int64
             )
 
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
-            noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+            noisy_images = train_noise_scheduler.add_noise(clean_images, noise, timesteps)
 
-            with accelerator.accumulate(model):
+            with accelerator.accumulate(train_model):
                 # Predict the noise residual
-                noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
+                noise_pred = train_model(noisy_images, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
@@ -194,10 +205,10 @@ def train_loop(train_config, model, noise_scheduler, optimizer, train_dataloader
                     return
 
                 if accelerator.sync_gradients:
-                    accelerator.clip_grad_norm_(model.parameters(), 1.0)
-                optimizer.step()
+                    accelerator.clip_grad_norm_(train_model.parameters(), 1.0)
+                train_optimizer.step()
                 lr_scheduler.step()
-                optimizer.zero_grad()
+                train_optimizer.zero_grad()
 
             progress_bar.update(1)
             logs = {
@@ -211,7 +222,7 @@ def train_loop(train_config, model, noise_scheduler, optimizer, train_dataloader
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(train_model), scheduler=train_noise_scheduler)
 
             if (epoch + 1) % train_config.save_image_epochs == 0 or epoch == train_config.num_epochs - 1:
                 evaluate(train_config, epoch, pipeline)
@@ -225,11 +236,11 @@ def train_loop(train_config, model, noise_scheduler, optimizer, train_dataloader
                         ignore_patterns=["step_*", "epoch_*"],
                     )
                 else:
-                    
-                    pipeline.save_pretrained(model_dir / f"epoch-{epoch}-step-{global_step}-{date_str}")
+                    save_path = model_dir / f"epoch-{epoch}-step-{global_step}-{date_str}"
+                    pipeline.save_pretrained(save_path)
 
 
-args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
+args = (config, model, noise_scheduler, optimizer, dataloader, lr_scheduler)
 
 notebook_launcher(train_loop, args, num_processes=1)
 # End-of-file (EOF)
