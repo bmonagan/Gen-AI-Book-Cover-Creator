@@ -1,4 +1,8 @@
-from dataclasses import dataclass, field
+"""
+Configuration settings and hyperparameters 
+for training the diffusion model on the Goodreads book cover dataset.
+"""
+from dataclasses import dataclass
 from typing import Optional
 
 @dataclass
