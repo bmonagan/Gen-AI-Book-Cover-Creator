@@ -57,6 +57,13 @@ preprocess = transforms.Compose(
 )
 
 def transform(examples):
+    """
+    Applies preprocessing transforms to a batch of images: resize, random horizontal flip, convert to tensor, and normalize.
+    Args:
+        examples (dict): A dictionary with an 'image' key containing a list of PIL Images.
+    Returns:
+        dict: A dictionary with a single key 'images' containing a list of processed tensors.
+    """
     images = [preprocess(image.convert("RGB")) for image in examples["image"]]
     return {"images": images}
 
@@ -111,9 +118,9 @@ sample_image = dataset["train"][0]["images"].unsqueeze(0)
 # Initialize the noise scheduler
 
 noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
-noise = torch.randn(sample_image.shape)
-timesteps = torch.LongTensor([50])
-noisy_image = noise_scheduler.add_noise(sample_image, noise, timesteps)
+initial_noise = torch.randn(sample_image.shape)
+initial_timesteps = torch.LongTensor([50])
+noisy_image = noise_scheduler.add_noise(sample_image, initial_noise, initial_timesteps)
 
 Image.fromarray(((noisy_image.permute(0, 2, 3, 1) + 1.0) * 127.5).type(torch.uint8).numpy()[0])
 
@@ -141,13 +148,15 @@ def evaluate(train_config, epoch, pipeline):
 
     test_dir = os.path.join(config.output_dir, "samples")
     os.makedirs(test_dir, exist_ok=True)
-    image_grid.save(f"{test_dir}/{epoch:04d}_{date_str}.png")
+    image_grid.save(
+        f"{test_dir}/{epoch:04d}_{date_str}.png"
+    )
     # After generating images (assuming images is a list of PIL Images)
     arr = np.array(images[0])
     print(arr.min(), arr.max())
 
 
-def train_loop(train_config, train_model, train_noise_scheduler, train_optimizer, train_dataloader, lr_scheduler):
+def train_loop(train_config, train_model, train_noise_scheduler, train_optimizer, train_dataloader, train_lr_scheduler):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
         mixed_precision=train_config.mixed_precision,
@@ -167,8 +176,8 @@ def train_loop(train_config, train_model, train_noise_scheduler, train_optimizer
     # Prepare everything
     # There is no specific order to remember, you just need to unpack the
     # objects in the same order you gave them to the prepare method.
-    train_model, train_optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        train_model, train_optimizer, train_dataloader, lr_scheduler
+    train_model, train_optimizer, train_dataloader, train_lr_scheduler = accelerator.prepare(
+        train_model, train_optimizer, train_dataloader, train_lr_scheduler
     )
 
     global_step = 0
@@ -178,7 +187,7 @@ def train_loop(train_config, train_model, train_noise_scheduler, train_optimizer
         progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
         progress_bar.set_description(f"Epoch {epoch}")
 
-        for step, batch in enumerate(train_dataloader):
+        for batch in train_dataloader:
             clean_images = batch["images"]
             # Sample noise to add to the images
             noise = torch.randn(clean_images.shape, device=clean_images.device)
@@ -207,13 +216,13 @@ def train_loop(train_config, train_model, train_noise_scheduler, train_optimizer
                 if accelerator.sync_gradients:
                     accelerator.clip_grad_norm_(train_model.parameters(), 1.0)
                 train_optimizer.step()
-                lr_scheduler.step()
+                train_lr_scheduler.step()
                 train_optimizer.zero_grad()
 
             progress_bar.update(1)
             logs = {
                 "loss": loss.detach().item(),
-                "lr": lr_scheduler.get_last_lr()[0], 
+                "lr": train_lr_scheduler.get_last_lr()[0], 
                 "step": global_step,  # A trailing comma is a good practice!
             }
             progress_bar.set_postfix(**logs)
@@ -236,7 +245,9 @@ def train_loop(train_config, train_model, train_noise_scheduler, train_optimizer
                         ignore_patterns=["step_*", "epoch_*"],
                     )
                 else:
-                    save_path = model_dir / f"epoch-{epoch}-step-{global_step}-{date_str}"
+                    save_path = model_dir / (
+                        f"epoch-{epoch}-step-{global_step}-{date_str}"
+                    )
                     pipeline.save_pretrained(save_path)
 
 
