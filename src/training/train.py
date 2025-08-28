@@ -115,10 +115,10 @@ lr_scheduler = get_cosine_schedule_with_warmup(
     num_training_steps=(len(train_dataloader) * config.num_epochs),
 )
 
-def evaluate(config, epoch, pipeline):
+def evaluate(train_config, epoch, pipeline):
     # Make sure batch_size matches rows * cols
-    num_images = config.eval_batch_size
-    rows, cols = 4, 4
+    num_images = train_config.eval_batch_size
+    rows, cols = num_images, num_images
     num_images = rows * cols
 
     images = pipeline(
@@ -136,38 +136,38 @@ def evaluate(config, epoch, pipeline):
     print(arr.min(), arr.max())
 
 
-def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler):
+def train_loop(train_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
-        mixed_precision=config.mixed_precision,
-        gradient_accumulation_steps=config.gradient_accumulation_steps,
+        mixed_precision=train_config.mixed_precision,
+        gradient_accumulation_steps=train_config.gradient_accumulation_steps,
         log_with="tensorboard",
-        project_dir=os.path.join(config.output_dir, "logs"),
+        project_dir=os.path.join(train_config.output_dir, "logs"),
     )
     if accelerator.is_main_process:
-        if config.output_dir is not None:
-            os.makedirs(config.output_dir, exist_ok=True)
-        if config.push_to_hub:
+        if train_config.output_dir is not None:
+            os.makedirs(train_config.output_dir, exist_ok=True)
+        if train_config.push_to_hub:
             repo_id = create_repo(
-                repo_id=config.hub_model_id or Path(config.output_dir).name, exist_ok=True
+                repo_id=train_config.hub_model_id or Path(train_config.output_dir).name, exist_ok=True
             ).repo_id
         accelerator.init_trackers("train_example")
 
     # Prepare everything
     # There is no specific order to remember, you just need to unpack the
     # objects in the same order you gave them to the prepare method.
-    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_dataloader, lr_scheduler
+    model, optimizer, dataloader, lr_scheduler = accelerator.prepare(
+        model, optimizer, dataloader, lr_scheduler
     )
 
     global_step = 0
 
     # Now you train the model
-    for epoch in range(config.num_epochs):
-        progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
+    for epoch in range(train_config.num_epochs):
+        progress_bar = tqdm(total=len(dataloader), disable=not accelerator.is_local_main_process)
         progress_bar.set_description(f"Epoch {epoch}")
 
-        for step, batch in enumerate(train_dataloader):
+        for step, batch in enumerate(dataloader):
             clean_images = batch["images"]
             # Sample noise to add to the images
             noise = torch.randn(clean_images.shape, device=clean_images.device)
@@ -213,14 +213,14 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         if accelerator.is_main_process:
             pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
-            if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
-                evaluate(config, epoch, pipeline)
+            if (epoch + 1) % train_config.save_image_epochs == 0 or epoch == train_config.num_epochs - 1:
+                evaluate(train_config, epoch, pipeline)
 
-            if (epoch + 1) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
-                if config.push_to_hub:
+            if (epoch + 1) % train_config.save_model_epochs == 0 or epoch == train_config.num_epochs - 1:
+                if train_config.push_to_hub:
                     upload_folder(
                         repo_id=repo_id,
-                        folder_path=config.output_dir,
+                        folder_path=train_config.output_dir,
                         commit_message=f"Epoch {epoch}",
                         ignore_patterns=["step_*", "epoch_*"],
                     )
