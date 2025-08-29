@@ -16,5 +16,6 @@ dependencies = [
     "torchvision",
     "torchaudio",
     "tensorboard>=2.20.0",
+    "transformers>=4.55.4",
 ]
  
