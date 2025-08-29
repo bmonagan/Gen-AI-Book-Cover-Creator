@@ -68,4 +68,4 @@ class TrainingConfig:
     weight_decay: float = 0.01
 
     # Current Model Directory
-    current_model_dir: str = "epoch-99-step-30600-2025-08-24"
+    current_model_dir: str = "epoch-49-step-15300-2025-08-28"
