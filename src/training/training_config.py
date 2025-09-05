@@ -60,10 +60,10 @@ class TrainingConfig:
     early_stopping_patience: Optional[int] = None  # e.g., 10 for early stopping
     resume_from_checkpoint: Optional[str] = None   # path to checkpoint to resume
 
-    # New: Logging
+    # Logging
     log_interval: int = 10  # steps between logging
 
-    # New: Option to change optimizer
+    # Option to change optimizer
     optimizer: str = "adamw"
     weight_decay: float = 0.01
 
