@@ -10,6 +10,7 @@ wheels/
 .venv
 
 #Data
+data/generated
 *.safetensors
 goodreads data/
 data/Generated/romantasy_bookcovers/logs/train_example/events.out.tfevents.1752554893.Blizzcon.17020.0
